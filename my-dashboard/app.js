@@ -1,5 +1,6 @@
-// app.js
 const state = { data: null };
+
+let barChart = null;
 
 const loadData = async () => {
   $('#status').text('加载中...').show();
@@ -49,6 +50,24 @@ const renderCards = (data) => {
         </div>
       </div>
     `);
+  });
+};
+
+const renderBarChart = (data) => {
+  if (barChart === null) {
+    barChart = echarts.init(document.querySelector('#bar-chart'));
+  }
+  barChart.setOption({
+    title: { text: '昆明近7日天气数据', left: 'center' },
+    tooltip: { trigger: 'axis' },
+    legend: { bottom: 0 },
+    xAxis: { data: data.days },
+    yAxis: { name: '数值' },
+    series: data.series.map(s => ({
+      name: s.category + '(' + s.unit + ')',
+      type: 'bar',
+      data: s.counts
+    }))
   });
 };
 
