@@ -1,6 +1,7 @@
 const state = { data: null };
 
 let barChart = null;
+let lineChart = null;
 
 const loadData = async () => {
   $('#status').text('加载中...').show();
@@ -70,5 +71,35 @@ const renderBarChart = (data) => {
     }))
   });
 };
+
+const renderLineChart = (data) => {
+  if (lineChart !== null) {
+    lineChart.destroy();               // 防重复初始化
+  }
+  const ctx = document.querySelector('#line-chart');
+  lineChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: data.days,
+      datasets: data.series.map(s => ({
+        label: s.category + '(' + s.unit + ')',
+        data: s.counts,
+        borderWidth: 1
+      }))
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        title: { display: true, text: '昆明天气趋势（7日）' }
+      }
+    }
+  });
+};
+
+window.addEventListener('resize', () => {
+  if (barChart) barChart.resize();
+  // Chart.js响应式默认自动处理，无需手动
+});
 
 loadData();
