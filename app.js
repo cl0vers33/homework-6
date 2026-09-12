@@ -1,16 +1,20 @@
+// app.js
 const state = { data: null };
-
-let barChart = null;
-let lineChart = null;
 
 const loadData = async () => {
   $('#status').text('加载中...').show();
   try {
-    const response = await fetch('data/books.json');
-    if (!response.ok) {
-      throw new Error('HTTP ' + response.status);
+    let data;
+    if (location.protocol === 'file:') {
+      // 双击本地打开（file://）时浏览器禁止 fetch 本地文件，改用 <script> 引入的数据
+      data = window.BOOKS_DATA;
+    } else {
+      const response = await fetch('data/books.json');
+      if (!response.ok) {
+        throw new Error('HTTP ' + response.status);
+      }
+      data = await response.json();
     }
-    const data = await response.json();
     if (data.series.length === 0) {
       $('#status').text('暂无数据').show();
       return;
@@ -43,53 +47,5 @@ const renderCards = (data) => {
     `);
   });
 };
-
-const renderBarChart = (data) => {
-  if (barChart === null) {
-    barChart = echarts.init(document.querySelector('#bar-chart'));
-  }
-  barChart.setOption({
-    title: { text: '各月各品类借阅量', left: 'center' },
-    tooltip: { trigger: 'axis' },
-    legend: { bottom: 0 },
-    xAxis: { data: data.months },
-    yAxis: { name: '册' },
-    series: data.series.map(s => ({
-      name: s.category,
-      type: 'bar',
-      data: s.counts
-    }))
-  });
-};
-
-const renderLineChart = (data) => {
-  if (lineChart !== null) {
-    lineChart.destroy();               // 防重复初始化
-  }
-  const ctx = document.querySelector('#line-chart');
-  lineChart = new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: data.months,
-      datasets: data.series.map(s => ({
-        label: s.category,
-        data: s.counts,
-        borderWidth: 1
-      }))
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        title: { display: true, text: '借阅趋势（单位：册）' }
-      }
-    }
-  });
-};
-
-window.addEventListener('resize', () => {
-  if (barChart) barChart.resize();
-  // Chart.js响应式默认自动处理，无需手动
-});
 
 loadData();
